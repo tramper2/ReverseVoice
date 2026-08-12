@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>리버스 보이스 (Reverse Voice) - 거꾸로 음성 따라하기 파티 게임</title>
+  <meta name="description" content="제시어를 거꾸로 들은 뒤 똑같이 따라 말해 원본 음성으로 복원해내는 음성 파티 게임! 모임, 파티, 스트리밍에서 즐기는 웹 Audio API 기반 모바일 무료 게임입니다.">
+  <meta name="keywords" content="리버스 보이스, Reverse Voice, 거꾸로 말하기, 음성 게임, 파티 게임, 오디오 게임, 거꾸로 재생, Web Audio API">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="리버스 보이스 (Reverse Voice) - 거꾸로 음성 복원 게임">
+  <meta property="og:description" content="내가 말한 소리가 거꾸로 뒤집힌다! 거꾸로 들리는 오디오를 들리는 대로 똑같이 따라해서 복원해 보세요.">
+  <meta property="og:image" content="./images/herobanner.JPG">
+
+  <!-- Favicon & Styles -->
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+
+  <!-- Confetti Canvas for Victory Animation -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="app-container">
+
+    <!-- Header Section with Hero Banner -->
+    <header class="main-header">
+      <div class="hero-banner-wrapper">
+        <img src="./images/herobanner.JPG" alt="리버스 보이스 메인 헤더 배너" class="hero-banner-img">
+        <div class="hero-banner-overlay"></div>
+      </div>
+      <div class="header-content">
+        <h1 class="header-title">Reverse Voice</h1>
+        <p class="header-subtitle">거꾸로 들린 음성을 똑같이 복원하라! 🎙️🔄</p>
+      </div>
+    </header>
+
+    <!-- Top Ad Banner Slot -->
+    <div class="ad-container">
+      <span>구글 애드센스 광고 영역 (Header Banner Slot)</span>
+    </div>
+
+    <!-- Step Flow Cards -->
+    <main class="card-flow-container">
+
+      <!-- STEP 1: 문제 녹음 -->
+      <section class="step-card active" id="card-step-1">
+        <div class="card-image-wrapper">
+          <img src="./images/step1-record.jfif" alt="Step 1 문제 녹음 마이크 에셋" class="card-img">
+          <span class="card-badge">Step 1</span>
+        </div>
+        <div class="card-body">
+          <h2 class="card-title">1. 문제 녹음하기</h2>
+          <p class="card-desc">출제자는 마이크를 대고 상대방이 맞힐 단어나 문장(예: "안녕하세요")을 녹음하세요.</p>
+          
+          <div class="visualizer-container">
+            <canvas id="canvas-step-1" class="visualizer-canvas" width="400" height="60"></canvas>
+            <span id="status-step-1" class="audio-status-text">준비 됨</span>
+          </div>
+
+          <button id="btn-record-1" class="btn btn-primary" aria-label="Step 1 문제 녹음 시작">
+            🎙️ 문제 녹음 시작
+          </button>
+        </div>
+      </section>
+
+      <!-- STEP 2: 1차 거꾸로 듣기 -->
+      <section class="step-card disabled" id="card-step-2">
+        <div class="card-image-wrapper">
+          <img src="./images/step2-reverse.jfif" alt="Step 2 오디오 리버스 에셋" class="card-img">
+          <span class="card-badge">Step 2</span>
+        </div>
+        <div class="card-body">
+          <h2 class="card-title">2. 거꾸로 뒤집힌 소리 듣기</h2>
+          <p class="card-desc">시스템이 원본을 뒤집은 소리("요세하녕안")를 들려줍니다. 도전자는 들리는 대로 소리를 기억하세요!</p>
+          
+          <div class="visualizer-container">
+            <canvas id="canvas-step-2" class="visualizer-canvas" width="400" height="60"></canvas>
+            <span id="status-step-2" class="audio-status-text">대기 중</span>
+          </div>
+
+          <button id="btn-play-rev-1" class="btn btn-secondary" aria-label="Step 2 1차 거꾸로 재생">
+            ▶️ 1차 거꾸로 들려주기
+          </button>
+        </div>
+      </section>
+
+      <!-- STEP 3: 따라하기 녹음 -->
+      <section class="step-card disabled" id="card-step-3">
+        <div class="card-image-wrapper">
+          <img src="./images/step3-waveform.jfif" alt="Step 3 따라하기 음성 웨이브 에셋" class="card-img">
+          <span class="card-badge">Step 3</span>
+        </div>
+        <div class="card-body">
+          <h2 class="card-title">3. 거꾸로 들리는대로 따라 말하기</h2>
+          <p class="card-desc">도전자는 Step 2에서 들은 묘한 발음("요세하녕안")을 흉내 내어 녹음합니다.</p>
+          
+          <div class="visualizer-container">
+            <canvas id="canvas-step-3" class="visualizer-canvas" width="400" height="60"></canvas>
+            <span id="status-step-3" class="audio-status-text">대기 중</span>
+          </div>
+
+          <button id="btn-record-2" class="btn btn-primary" aria-label="Step 3 따라하기 녹음 시작">
+            🎙️ 따라하기 녹음 시작
+          </button>
+        </div>
+      </section>
+
+      <!-- STEP 4: 2차 리버스 검증 & 판정 -->
+      <section class="step-card disabled" id="card-step-4">
+        <div class="card-image-wrapper">
+          <img src="./images/result-trophy.jfif" alt="Step 4 검증 트로피 에셋" class="card-img">
+          <span class="card-badge">Step 4</span>
+        </div>
+        <div class="card-body">
+          <h2 class="card-title">4. 2차 복원 검증 & 최종 판정</h2>
+          <p class="card-desc">도전자가 녹음한 소리를 다시 뒤집어 재생합니다! 원래 제시어("안녕하세요")처럼 또렷하게 들리는지 확인하세요.</p>
+          
+          <div class="visualizer-container">
+            <canvas id="canvas-step-4" class="visualizer-canvas" width="400" height="60"></canvas>
+            <span id="status-step-4" class="audio-status-text">대기 중</span>
+          </div>
+
+          <button id="btn-play-rev-2" class="btn btn-secondary" aria-label="Step 4 2차 복원 음성 재생">
+            ▶️ 2차 복원 음성 재생
+          </button>
+
+          <!-- Success / Fail Action Group -->
+          <div id="result-actions" class="btn-group" style="display: none;">
+            <button id="btn-success" class="btn btn-success" aria-label="성공 판정">🎯 성공!</button>
+            <button id="btn-fail" class="btn btn-danger" aria-label="실패 판정">❌ 실패!</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Mid Ad Banner Slot -->
+    <div class="ad-container">
+      <span>구글 애드센스 광고 영역 (Content Footer Slot)</span>
+    </div>
+
+    <!-- SEO & AdSense Content Sections -->
+    <footer class="info-sections-container">
+
+      <!-- Section 1: Game Guide -->
+      <section class="info-card game-guide">
+        <h2 class="info-title">📖 리버스 보이스 게임 가이드 & 성공 꿀팁</h2>
+        <div class="info-text">
+          <p>
+            <strong>리버스 보이스(Reverse Voice)란?</strong><br>
+            우리가 평소 말하는 언어를 녹음한 뒤 시간에 따라 역순으로 재생하면, 무척 낯설고 외계어 같은 발음이 탄생합니다. 리버스 보이스 게임은 바로 이 원리를 이용해 친구, 가족, 방송 시청자들과 함께 즐기는 오디오 신개념 파티 게임입니다.
+          </p>
+          <br>
+          <p>
+            <strong>게임 100% 즐기는 고수들의 꿀팁 3가지:</strong><br>
+            1. <strong>자음과 모음을 끊어서 또박또박 발성하세요:</strong> 원본 녹음 시 각 음절을 명확하고 길게 발음하면 거꾸로 뒤집혔을 때 청각적 힌트가 훨씬 또렷해집니다.<br>
+            2. <strong>억양과 피치(음높이)에 집중하세요:</strong> 거꾸로 재생된 음성은 억양이 반대로 튀어 올라갑니다. 도전자는 말의 뜻보다는 '소리의 높낮이 멜로디'를 노래하듯 따라 부르면 성공 확률이 급격히 높아집니다.<br>
+            3. <strong>받침이 많은 단어로 도전해 보세요:</strong> '감사합니다', '코딩게임을즐기자'처럼 받침이 다양한 단어는 뒤집었을 때 특유의 독특한 마찰음이 생겨 판정 시 큰 웃음을 줍니다.
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 2: Word List (50 words) -->
+      <section class="info-card word-list">
+        <h2 class="info-title">💡 추천 제시어 50선 단어장</h2>
+        <p class="info-text">무슨 단어로 시작할지 고민될 때 아래 단계별 추천 키워드를 활용해 보세요!</p>
+        
+        <div class="word-category">
+          <h3 class="category-header">🟢 초급 (쉬운 단어 - 2~3음절)</h3>
+          <div class="word-tags">
+            <span class="word-tag">안녕하세요</span>
+            <span class="word-tag">바나나</span>
+            <span class="word-tag">사과나무</span>
+            <span class="word-tag">아이스크림</span>
+            <span class="word-tag">대한민국</span>
+            <span class="word-tag">초콜릿</span>
+            <span class="word-tag">오렌지</span>
+            <span class="word-tag">스마트폰</span>
+            <span class="word-tag">비행기</span>
+            <span class="word-tag">자전거</span>
+            <span class="word-tag">도서관</span>
+            <span class="word-tag">피아노</span>
+            <span class="word-tag">축구공</span>
+            <span class="word-tag">무지개</span>
+            <span class="word-tag">해바라기</span>
+            <span class="word-tag">컴퓨터</span>
+            <span class="word-tag">모니터</span>
+          </div>
+        </div>
+
+        <div class="word-category">
+          <h3 class="category-header">🟡 중급 (보통 단어 - 문장 및 숙어)</h3>
+          <div class="word-tags">
+            <span class="word-tag">맛있는 점심식사</span>
+            <span class="word-tag">감사합니다</span>
+            <span class="word-tag">오늘도 화이팅</span>
+            <span class="word-tag">커피 한 잔의 여유</span>
+            <span class="word-tag">즐거운 파티게임</span>
+            <span class="word-tag">주말 여행 가자</span>
+            <span class="word-tag">영화 관람하기</span>
+            <span class="word-tag">생일 축하합니다</span>
+            <span class="word-tag">비가 내리는 날</span>
+            <span class="word-tag">바다로 떠나요</span>
+            <span class="word-tag">맛있는 떡볶이</span>
+            <span class="word-tag">행복한 하루</span>
+            <span class="word-tag">웃음이 넘치는 모임</span>
+            <span class="word-tag">음악을 듣다</span>
+            <span class="word-tag">열심히 공부하자</span>
+            <span class="word-tag">건강이 최우선</span>
+            <span class="word-tag">새해 복 많이 받으세요</span>
+          </div>
+        </div>
+
+        <div class="word-category">
+          <h3 class="category-header">🔴 상급 (매우 어려움 - 고난도 문장 & 혀 꼬이는 phrase)</h3>
+          <div class="word-tags">
+            <span class="word-tag">내가 그린 기린 그림</span>
+            <span class="word-tag">간장 공장 공장장</span>
+            <span class="word-tag">경찰청 창살 쌍창살</span>
+            <span class="word-tag">안촉촉한 초코칩</span>
+            <span class="word-tag">상표 붙인 통조림</span>
+            <span class="word-tag">들콩죽 날콩죽</span>
+            <span class="word-tag">복숭아 통조림 캔</span>
+            <span class="word-tag">스위스에서 온 카프스</span>
+            <span class="word-tag">중앙청 창살 쌍창살</span>
+            <span class="word-tag">멍멍이와 야옹이의 대화</span>
+            <span class="word-tag">알프스 산맥의 하이디</span>
+            <span class="word-tag">백합화 꽃밭의 파수꾼</span>
+            <span class="word-tag">초코칩 쿠키 공장장</span>
+            <span class="word-tag">서울특별시 특수목적시</span>
+            <span class="word-tag">피타고라스의 정리</span>
+            <span class="word-tag">양념 양념 치킨</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: FAQ -->
+      <section class="info-card faq-section">
+        <h2 class="info-title">❓ 자주 묻는 질문 (FAQ)</h2>
+        
+        <div class="faq-item">
+          <h3 class="faq-question">Q. 모바일 브라우저에서 마이크 녹음이 안 돼요.</h3>
+          <p class="faq-answer">
+            Web Audio API는 웹 브라우저의 마이크 접근 권한 승인이 필요합니다. Safari 또는 Chrome 주소창 옆의 [설정] 또는 [권한 모니터] 아이콘을 누르고 마이크 허용으로 전환해 주세요. 또한 HTTPS 보안 연결에서만 마이크가 작동합니다.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-question">Q. 소리가 너무 작거나 재생되지 않나요?</h3>
+          <p class="faq-answer">
+            스마트폰 무음 모드(진동 모드)가 활성화되어 있으면 브라우저 오디오 출력이 제한될 수 있습니다. 벨소리/미디어 볼륨을 높이고 무음 모드를 해제해 주세요.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-question">Q. 별도의 앱 설치나 회원가입이 필요한가요?</h3>
+          <p class="faq-answer">
+            아닙니다! 별도의 다운로드나 로그인 없이 웹 브라우저 접속만으로 즉시 즐길 수 있는 100% 무료 웹 앱입니다.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-question">Q. 몇 명까지 같이 플레이할 수 있나요?</h3>
+          <p class="faq-answer">
+            제한이 없습니다! 1:1 대결은 물론, 모임이나 엠티(MT)에서 출제자 1명과 다수의 도전자가 팀을 나누어 플레이하기에 최적화되어 있습니다.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <h3 class="faq-question">Q. 아이폰과 안드로이드 모두 지원하나요?</h3>
+          <p class="faq-answer">
+            네, 최신 iOS (Safari/Chrome/KakaoInApp) 및 Android (Chrome/Samsung Internet) 브라우저 모바일 환경에 최적화되어 있습니다.
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 4: Privacy Notice -->
+      <section class="info-card privacy-notice">
+        <h2 class="info-title">🔒 개인정보 보호 안내 (Privacy Notice)</h2>
+        <p class="info-text">
+          본 리버스 보이스(Reverse Voice) 웹 애플리케이션은 사용자의 음성 데이터 및 개인정보를 보호하기 위해 엄격한 Client-Side 연산 방식을 준수합니다.
+        </p>
+        <p class="info-text">
+          - <strong>서버 전송 없음:</strong> 녹음된 모든 음성 오디오 데이터는 서버로 전송되거나 저장되지 않습니다.<br>
+          - <strong>브라우저 메모리 연산:</strong> 오디오 역순 연산(Web Audio API Buffer Reversal)은 100% 사용자의 기기(브라우저 RAM) 내부에서만 수행됩니다.<br>
+          - <strong>자동 휘발:</strong> 페이지를 새로고침하거나 게임을 리셋하면 녹음된 오디오 데이터는 브라우저 메모리에서 완전히 삭제됩니다.
+        </p>
+      </section>
+
+      <div class="footer">
+        <p>© 2026 Reverse Voice Game. All rights reserved.</p>
+      </div>
+
+    </footer>
+
+  </div>
+
+  <!-- Victory Celebration Modal -->
+  <div id="modal-backdrop" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-card">
+      <div class="modal-img-wrapper">
+        <img src="./images/result-trophy.jfif" alt="성공 승리 트로피" class="modal-img">
+      </div>
+      <div class="modal-body">
+        <h2 id="modal-title" class="modal-title">🎉 완벽한 복원 성공!</h2>
+        <p class="modal-subtitle">축하합니다! 거꾸로 들린 난해한 소리를 완벽한 발음으로 복원해냈습니다!</p>
+        
+        <button id="btn-reset" class="btn btn-success" aria-label="새 게임 시작하기">
+          🔄 새로운 게임 시작하기
+        </button>
+        <button id="btn-modal-close" class="btn btn-secondary" style="min-height: 48px; height: 48px; font-size: 0.9rem;" aria-label="닫기">
+          닫기
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main JavaScript Module -->
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
