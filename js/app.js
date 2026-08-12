@@ -1,11 +1,12 @@
 import { AudioEngine } from './audio.js';
+import { AudioScorer } from './scorer.js';
 
 // Application State Enum
 const State = {
   IDLE: 'IDLE',
   REC1_DONE: 'REC1_DONE',
   REC2_DONE: 'REC2_DONE',
-  RESULT: 'RESULT'
+  SCORED: 'SCORED'
 };
 
 class ReverseVoiceApp {
@@ -46,8 +47,7 @@ class ReverseVoiceApp {
     this.elements.btnPlayRev1 = document.getElementById('btn-play-rev-1');
     this.elements.btnRecord2 = document.getElementById('btn-record-2');
     this.elements.btnPlayRev2 = document.getElementById('btn-play-rev-2');
-    this.elements.btnSuccess = document.getElementById('btn-success');
-    this.elements.btnFail = document.getElementById('btn-fail');
+    this.elements.btnScore = document.getElementById('btn-score');
     this.elements.btnReset = document.getElementById('btn-reset');
     this.elements.btnModalClose = document.getElementById('btn-modal-close');
 
@@ -63,11 +63,12 @@ class ReverseVoiceApp {
     this.elements.statusStep3 = document.getElementById('status-step-3');
     this.elements.statusStep4 = document.getElementById('status-step-4');
 
-    // Result Actions Container
-    this.elements.resultActions = document.getElementById('result-actions');
-
-    // Modal & Confetti
+    // Modal & Score Elements
     this.elements.modalBackdrop = document.getElementById('modal-backdrop');
+    this.elements.modalTitle = document.getElementById('modal-title');
+    this.elements.modalSubtitle = document.getElementById('modal-subtitle');
+    this.elements.scoreBadge = document.getElementById('score-badge');
+    this.elements.scoreNumber = document.getElementById('score-number');
     this.elements.confettiCanvas = document.getElementById('confetti-canvas');
   }
 
@@ -84,9 +85,8 @@ class ReverseVoiceApp {
     // Step 4: Play 2nd Reversed (Restored) Audio
     this.elements.btnPlayRev2.addEventListener('click', () => this.handlePlayRev2());
 
-    // Judgment
-    this.elements.btnSuccess.addEventListener('click', () => this.handleSuccess());
-    this.elements.btnFail.addEventListener('click', () => this.handleFail());
+    // Score Calculation Button
+    this.elements.btnScore.addEventListener('click', () => this.handleScore());
 
     // Reset & Modal
     this.elements.btnReset.addEventListener('click', () => this.resetGame());
@@ -95,7 +95,6 @@ class ReverseVoiceApp {
 
   // --- UI State Machine Controller ---
   updateUIState() {
-    // Card Focus / Disabled States according to USER_FLOW.md
     switch (this.currentState) {
       case State.IDLE:
         this.setCardActive(this.elements.cardStep1, true);
@@ -107,7 +106,7 @@ class ReverseVoiceApp {
         this.setButtonState(this.elements.btnPlayRev1, false, '▶️ 1차 거꾸로 들려주기');
         this.setButtonState(this.elements.btnRecord2, false, '🎙️ 따라하기 녹음 시작');
         this.setButtonState(this.elements.btnPlayRev2, false, '▶️ 2차 복원 음성 재생');
-        this.elements.resultActions.style.display = 'none';
+        this.elements.btnScore.style.display = 'none';
         break;
 
       case State.REC1_DONE:
@@ -120,10 +119,11 @@ class ReverseVoiceApp {
         this.setButtonState(this.elements.btnPlayRev1, true, '▶️ 1차 거꾸로 들려주기');
         this.setButtonState(this.elements.btnRecord2, true, '🎙️ 따라하기 녹음 시작');
         this.setButtonState(this.elements.btnPlayRev2, false, '▶️ 2차 복원 음성 재생');
-        this.elements.resultActions.style.display = 'none';
+        this.elements.btnScore.style.display = 'none';
         break;
 
       case State.REC2_DONE:
+      case State.SCORED:
         this.setCardActive(this.elements.cardStep1, true);
         this.setCardActive(this.elements.cardStep2, true);
         this.setCardActive(this.elements.cardStep3, true);
@@ -133,15 +133,7 @@ class ReverseVoiceApp {
         this.setButtonState(this.elements.btnPlayRev1, true, '▶️ 1차 거꾸로 들려주기');
         this.setButtonState(this.elements.btnRecord2, true, '🔄 따라하기 다시 녹음');
         this.setButtonState(this.elements.btnPlayRev2, true, '▶️ 2차 복원 음성 재생');
-        this.elements.resultActions.style.display = 'grid';
-        break;
-
-      case State.RESULT:
-        this.setCardActive(this.elements.cardStep1, true);
-        this.setCardActive(this.elements.cardStep2, true);
-        this.setCardActive(this.elements.cardStep3, true);
-        this.setCardActive(this.elements.cardStep4, true);
-        this.elements.resultActions.style.display = 'grid';
+        this.elements.btnScore.style.display = 'flex';
         break;
     }
   }
@@ -164,7 +156,6 @@ class ReverseVoiceApp {
   // --- Step 1: Record Question ---
   async handleRecord1Toggle() {
     if (this.engine.isRecording) {
-      // Stop recording
       try {
         this.elements.statusStep1.textContent = '녹음 변환 중...';
         this.originalBuffer = await this.engine.stopRecording();
@@ -182,7 +173,6 @@ class ReverseVoiceApp {
         this.elements.statusStep1.textContent = '오류 발생';
       }
     } else {
-      // Start recording
       try {
         await this.engine.startRecording((analyser) => {
           this.startVisualizer(this.elements.canvasStep1, analyser);
@@ -225,7 +215,6 @@ class ReverseVoiceApp {
   // --- Step 3: Record Challenge ---
   async handleRecord2Toggle() {
     if (this.engine.isRecording) {
-      // Stop recording challenge
       try {
         this.elements.statusStep3.textContent = '녹음 변환 중...';
         this.challengeBuffer = await this.engine.stopRecording();
@@ -243,7 +232,6 @@ class ReverseVoiceApp {
         this.elements.statusStep3.textContent = '오류 발생';
       }
     } else {
-      // Start recording challenge
       try {
         await this.engine.startRecording((analyser) => {
           this.startVisualizer(this.elements.canvasStep3, analyser);
@@ -273,8 +261,10 @@ class ReverseVoiceApp {
 
       this.engine.playBuffer(this.secondReversedBuffer, () => {
         this.stopVisualizer();
-        this.elements.statusStep4.textContent = '재생 완료! 성공 / 실패를 판정해 주세요.';
+        this.elements.statusStep4.textContent = '재생 완료! [💯 점수 채점하기] 버튼을 누르세요!';
         this.elements.btnPlayRev2.textContent = '▶️ 2차 복원 음성 재생';
+        // Auto trigger score when playback ends
+        this.handleScore();
       });
 
       if (this.engine.analyser) {
@@ -283,15 +273,29 @@ class ReverseVoiceApp {
     }
   }
 
-  // --- Judgment ---
-  handleSuccess() {
-    this.currentState = State.RESULT;
-    this.showModal(true);
-    this.startConfetti();
-  }
+  // --- Automatic Similarity Scoring ---
+  handleScore() {
+    if (!this.originalBuffer || !this.secondReversedBuffer) {
+      alert('스텝 1의 원본 녹음과 스텝 3의 따라하기 녹음이 완료되어야 채점할 수 있습니다.');
+      return;
+    }
 
-  handleFail() {
-    alert('아쉽네요! 도전자가 거꾸로 따라하기를 다시 시도하거나 새로운 문제로 도전해보세요! 🔁');
+    // Calculate score using AudioScorer
+    const result = AudioScorer.calculateScore(this.originalBuffer, this.secondReversedBuffer);
+    
+    // Update Modal UI
+    this.elements.scoreBadge.textContent = result.grade;
+    this.elements.scoreNumber.textContent = result.score;
+    this.elements.modalTitle.textContent = result.title;
+    this.elements.modalSubtitle.textContent = result.description;
+
+    this.currentState = State.SCORED;
+    this.showModal();
+
+    // Trigger confetti for high scores (>= 75)
+    if (result.score >= 75) {
+      this.startConfetti();
+    }
   }
 
   showModal() {

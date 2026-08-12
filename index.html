@@ -125,11 +125,10 @@
             ▶️ 2차 복원 음성 재생
           </button>
 
-          <!-- Success / Fail Action Group -->
-          <div id="result-actions" class="btn-group" style="display: none;">
-            <button id="btn-success" class="btn btn-success" aria-label="성공 판정">🎯 성공!</button>
-            <button id="btn-fail" class="btn btn-danger" aria-label="실패 판정">❌ 실패!</button>
-          </div>
+          <!-- Score Action Button -->
+          <button id="btn-score" class="btn btn-success" style="display: none;" aria-label="100점 만점 유사도 점수 채점하기">
+            💯 점수 채점하기
+          </button>
         </div>
       </section>
 
@@ -303,8 +302,16 @@
         <img src="./images/result-trophy.jfif" alt="성공 승리 트로피" class="modal-img">
       </div>
       <div class="modal-body">
+        <div class="score-display-wrapper">
+          <span id="score-badge" class="score-badge">SSS</span>
+          <div class="score-number-box">
+            <span id="score-number" class="score-number">95</span>
+            <span class="score-unit">점</span>
+          </div>
+        </div>
+
         <h2 id="modal-title" class="modal-title">🎉 완벽한 복원 성공!</h2>
-        <p class="modal-subtitle">축하합니다! 거꾸로 들린 난해한 소리를 완벽한 발음으로 복원해냈습니다!</p>
+        <p id="modal-subtitle" class="modal-subtitle">축하합니다! 거꾸로 들린 난해한 소리를 완벽한 발음으로 복원해냈습니다!</p>
         
         <button id="btn-reset" class="btn btn-success" aria-label="새 게임 시작하기">
           🔄 새로운 게임 시작하기

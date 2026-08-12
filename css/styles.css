@@ -113,6 +113,7 @@ body {
   font-weight: 800;
   background: linear-gradient(135deg, #818cf8 0%, #f472b6 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 4px;
 }
@@ -405,6 +406,48 @@ body {
   font-size: 0.95rem;
   color: var(--text-muted);
   line-height: 1.4;
+}
+
+/* Score Display in Result Modal */
+.score-display-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.score-badge {
+  background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 800;
+  padding: 4px 18px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+  box-shadow: var(--shadow-glow-secondary);
+}
+
+.score-number-box {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.score-number {
+  font-size: 3.8rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #10b981 0%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+
+.score-unit {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-muted);
 }
 
 /* SEO & AdSense Informational Sections */
