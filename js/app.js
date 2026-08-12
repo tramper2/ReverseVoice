@@ -167,6 +167,11 @@ class ReverseVoiceApp {
 
         this.currentState = State.REC1_DONE;
         this.updateUIState();
+
+        // Auto-scroll to Step 2 Card
+        if (this.elements.cardStep2) {
+          this.elements.cardStep2.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       } catch (err) {
         console.error(err);
         alert('녹음 처리 중 오류가 발생했습니다: ' + err.message);
@@ -204,6 +209,11 @@ class ReverseVoiceApp {
         this.stopVisualizer();
         this.elements.statusStep2.textContent = '재생 완료!';
         this.elements.btnPlayRev1.textContent = '▶️ 1차 거꾸로 들려주기';
+
+        // Auto-scroll to Step 3 Card
+        if (this.elements.cardStep3) {
+          this.elements.cardStep3.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       });
 
       if (this.engine.analyser) {
@@ -226,6 +236,11 @@ class ReverseVoiceApp {
 
         this.currentState = State.REC2_DONE;
         this.updateUIState();
+
+        // Auto-scroll to Step 4 Card
+        if (this.elements.cardStep4) {
+          this.elements.cardStep4.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       } catch (err) {
         console.error(err);
         alert('녹음 처리 중 오류가 발생했습니다.');
@@ -325,6 +340,13 @@ class ReverseVoiceApp {
     this.elements.statusStep2.textContent = '대기 중';
     this.elements.statusStep3.textContent = '대기 중';
     this.elements.statusStep4.textContent = '대기 중';
+
+    // Smooth scroll UI focus back to Step 1 Card
+    setTimeout(() => {
+      if (this.elements.cardStep1) {
+        this.elements.cardStep1.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 150);
   }
 
   // --- Audio Visualizer ---
