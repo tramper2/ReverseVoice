@@ -38,11 +38,14 @@
 
 ---
 
-## 2. 📢 구글 애드센스 광고 추가 (AdSense Integration)
+## 2. 📢 구글 애드센스 광고 연동 현황 (AdSense Integration)
 
-- 먼저 배포 후 사용자 반응 및 방문자 트래픽 추이를 확인한 뒤 승인 신청 진행.
-- 승인 후 `index.html` 내 `<div class="ad-container">` 영역에 애드센스 스크립트 코드 연동.
-- 루트 [ads.txt](file:///home/tramp/Projects/ReversVoice/ads.txt) 파일에 실제 게시자 ID(`pub-XXXXXXXXXXXXXXXX`) 반영.
+- **게시자 ID**: `pub-3819448456075603` 연동 완료 (`index.html`, `ads.txt`)
+- **상세 운용 가이드**: 자세한 서브도메인 등록 방법 및 향후 절차는 [ADSENSE_GUIDE.md](file:///home/tramp/Projects/ReversVoice/Doc/ADSENSE_GUIDE.md) 문서를 참고하세요.
+- **다음 할 일**:
+  1. `artractive.pe.kr` 메인 도메인 애드센스 심사 통과 (초록색 '준비됨' 상태 확인)
+  2. 애드센스 콘솔 > [사이트] > [artractive.pe.kr] > [서브도메인 세부정보]에서 `rv.artractive.pe.kr` 등록
+
 
 ---
 
